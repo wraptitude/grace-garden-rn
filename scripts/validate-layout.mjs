@@ -12,17 +12,35 @@ const manifestPath = path.resolve(
 );
 const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
 
-assert.equal(manifest.layout.columns, 16, "Expected 16 garden columns");
-assert.equal(manifest.layout.rows, 16, "Expected 16 garden rows");
-assert.equal(
-  manifest.layout.cellCapacity,
-  manifest.layout.columns * manifest.layout.rows,
-  "cellCapacity must match columns × rows",
-);
+assert.equal(manifest.layout.columns, 31, "Expected 31 backing columns");
+assert.equal(manifest.layout.rows, 31, "Expected 31 backing rows");
+assert.deepEqual(manifest.layout.minGridCoordinate, [-8, -8]);
+assert.equal(manifest.layout.buildableShape, "island-ellipse");
+assert.deepEqual(manifest.layout.surfaceEllipseWorld, [0, 350, 900, 520]);
 assert.deepEqual(
   manifest.layout.tileWorldSize,
-  [104, 52],
-  "Isometric tile must remain 104 × 52",
+  [94, 47],
+  "Isometric tile must remain 94 × 47",
+);
+
+const [minGridX, minGridY] = manifest.layout.minGridCoordinate;
+const [surfaceX, surfaceY, radiusX, radiusY] =
+  manifest.layout.surfaceEllipseWorld;
+const [tileWidth, tileHeight] = manifest.layout.tileWorldSize;
+let buildableCells = 0;
+for (let y = minGridY; y < minGridY + manifest.layout.rows; y += 1) {
+  for (let x = minGridX; x < minGridX + manifest.layout.columns; x += 1) {
+    const worldX = (x - y) * (tileWidth / 2);
+    const worldY = (x + y) * (tileHeight / 2);
+    const normalizedX = (worldX - surfaceX) / radiusX;
+    const normalizedY = (worldY - surfaceY) / radiusY;
+    if (normalizedX ** 2 + normalizedY ** 2 <= 1) buildableCells += 1;
+  }
+}
+assert.equal(
+  manifest.layout.cellCapacity,
+  buildableCells,
+  "cellCapacity must match the island surface mask",
 );
 
 for (const item of manifest.placeables) {
@@ -57,8 +75,8 @@ for (const item of manifest.placeables) {
   assert.ok(item.groundAnchor[1] >= 0.85 && item.groundAnchor[1] <= 1);
 }
 
-console.log("✓ 16 × 16 garden layout validated");
-console.log("✓ 256 buildable cells available");
+console.log("✓ island-shaped garden layout validated");
+console.log(`✓ ${buildableCells} buildable cells available`);
 console.log(
   `✓ ${manifest.placeables.length} placeable PNG scale records validated`,
 );

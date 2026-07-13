@@ -30,8 +30,13 @@ import {
 import {
   GARDEN_CELL_CAPACITY,
   GARDEN_COLUMNS,
+  GARDEN_MAX_GRID_X,
+  GARDEN_MAX_GRID_Y,
+  GARDEN_MIN_GRID_X,
+  GARDEN_MIN_GRID_Y,
   GARDEN_ROWS,
   getGardenBoardWorldBounds,
+  isBuildableGardenCell,
   isoToWorld,
   worldToIso,
 } from "../src/features/graceGarden/engine/geometry";
@@ -72,19 +77,29 @@ test("collision rejects a cell occupied by the fixed fountain", () => {
   assert.equal(result.reason, "occupied");
 });
 
-test("large garden layout exposes 16 × 16 buildable cells", () => {
-  assert.equal(GARDEN_COLUMNS, 16);
-  assert.equal(GARDEN_ROWS, 16);
-  assert.equal(GARDEN_CELL_CAPACITY, 256);
+test("island-shaped layout exposes 668 buildable cells", () => {
+  assert.equal(GARDEN_MIN_GRID_X, -8);
+  assert.equal(GARDEN_MIN_GRID_Y, -8);
+  assert.equal(GARDEN_COLUMNS, 31);
+  assert.equal(GARDEN_ROWS, 31);
+  assert.equal(GARDEN_MAX_GRID_X, 23);
+  assert.equal(GARDEN_MAX_GRID_Y, 23);
+  assert.equal(GARDEN_CELL_CAPACITY, 668);
   assert.deepEqual(getGardenBoardWorldBounds(), {
-    x: -832,
-    y: -26,
-    width: 1664,
-    height: 832,
+    x: -940,
+    y: -188,
+    width: 1880,
+    height: 1057.5,
   });
 });
 
-test("new island world mapping fits the 16 × 16 board", () => {
+test("island surface mask adds buildable wing cells", () => {
+  assert.equal(isBuildableGardenCell(-2, 8), true);
+  assert.equal(isBuildableGardenCell(8, -2), true);
+  assert.equal(isBuildableGardenCell(-8, -8), false);
+});
+
+test("new island world mapping fits the buildable surface mask", () => {
   const board = getGardenBoardWorldBounds();
   assert.ok(board.x >= FLOATING_ISLAND_WORLD_RECT.x);
   assert.ok(board.x + board.width <= FLOATING_ISLAND_WORLD_RECT.x + FLOATING_ISLAND_WORLD_RECT.width);
@@ -149,21 +164,21 @@ test("zoomed camera allows bounded inspection pan", () => {
   assert.ok(panned.y > centered.y - 10_000);
 });
 
-test("collision accepts final valid 2 × 2 origin", () => {
+test("collision accepts a 2 × 2 object in the new left wing", () => {
   const result = canPlaceObject([], {
     catalogId: "olive_tree",
-    gridX: 14,
-    gridY: 14,
+    gridX: -2,
+    gridY: 8,
     rotation: 0,
   });
   assert.equal(result.ok, true);
 });
 
-test("collision rejects expanded garden boundary overflow", () => {
+test("collision rejects cells outside the island surface", () => {
   const result = canPlaceObject([], {
     catalogId: "olive_tree",
-    gridX: 15,
-    gridY: 15,
+    gridX: -8,
+    gridY: -8,
     rotation: 0,
   });
   assert.equal(result.ok, false);
@@ -228,8 +243,8 @@ test("old saves repair real overlaps while preserving fixed landmarks", () => {
       id: "overflow-well",
       catalogId: "flower_well",
       kind: "decoration" as const,
-      gridX: 15,
-      gridY: 15,
+      gridX: -8,
+      gridY: -8,
       rotation: 0 as const,
       createdAt: 4,
       updatedAt: 4,
@@ -314,7 +329,7 @@ test("edge objects rotate into the nearest legal fallback position", () => {
     catalogId: "white_flower_fence",
     kind: "decoration" as const,
     gridX: 12,
-    gridY: 15,
+    gridY: 19,
     rotation: 0 as const,
     createdAt: 1,
     updatedAt: 1,

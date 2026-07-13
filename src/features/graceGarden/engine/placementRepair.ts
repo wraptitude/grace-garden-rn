@@ -5,8 +5,10 @@ import {
   findFirstAvailablePlacement,
 } from "./collision";
 import {
-  GARDEN_COLUMNS,
-  GARDEN_ROWS,
+  GARDEN_MAX_GRID_X,
+  GARDEN_MAX_GRID_Y,
+  GARDEN_MIN_GRID_X,
+  GARDEN_MIN_GRID_Y,
   getRotatedFootprint,
 } from "./geometry";
 
@@ -76,8 +78,8 @@ function findAiryPlacement(
   object: GardenObject,
 ): { x: number; y: number } | null {
   const candidates: Array<{ x: number; y: number }> = [];
-  for (let y = 0; y < GARDEN_ROWS; y += 1) {
-    for (let x = 0; x < GARDEN_COLUMNS; x += 1) {
+  for (let y = GARDEN_MIN_GRID_Y; y < GARDEN_MAX_GRID_Y; y += 1) {
+    for (let x = GARDEN_MIN_GRID_X; x < GARDEN_MAX_GRID_X; x += 1) {
       candidates.push({ x, y });
     }
   }

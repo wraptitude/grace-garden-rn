@@ -6,7 +6,17 @@ import type {
   GridPoint,
   PlacementCheck,
 } from "../state/types";
-import { GARDEN_COLUMNS, GARDEN_ROWS, getRotatedFootprint } from "./geometry";
+import {
+  GARDEN_COLUMNS,
+  GARDEN_MAX_GRID_X,
+  GARDEN_MAX_GRID_Y,
+  GARDEN_MIN_GRID_X,
+  GARDEN_MIN_GRID_Y,
+  GARDEN_ROWS,
+  getGardenCellIndex,
+  getRotatedFootprint,
+  isBuildableGardenCell,
+} from "./geometry";
 
 interface PlacementCandidate {
   catalogId: string;
@@ -40,13 +50,12 @@ export function canPlaceObject(
   }
 
   const footprint = getRotatedFootprint(item.footprint, candidate.rotation);
-  if (
-    candidate.gridX < 0 ||
-    candidate.gridY < 0 ||
-    candidate.gridX + footprint.width > GARDEN_COLUMNS ||
-    candidate.gridY + footprint.height > GARDEN_ROWS
-  ) {
-    return { ok: false, reason: "out-of-bounds" };
+  for (let x = 0; x < footprint.width; x += 1) {
+    for (let y = 0; y < footprint.height; y += 1) {
+      if (!isBuildableGardenCell(candidate.gridX + x, candidate.gridY + y)) {
+        return { ok: false, reason: "out-of-bounds" };
+      }
+    }
   }
 
   if (!item.blocksPlacement) {
@@ -81,8 +90,9 @@ export function findFirstAvailablePlacement(
   const centerX = preferred.x;
   const centerY = preferred.y;
 
-  for (let y = 0; y < GARDEN_ROWS; y += 1) {
-    for (let x = 0; x < GARDEN_COLUMNS; x += 1) {
+  for (let y = GARDEN_MIN_GRID_Y; y < GARDEN_MAX_GRID_Y; y += 1) {
+    for (let x = GARDEN_MIN_GRID_X; x < GARDEN_MAX_GRID_X; x += 1) {
+      if (!isBuildableGardenCell(x, y)) continue;
       candidates.push({ x, y });
     }
   }
@@ -120,13 +130,8 @@ export function buildCellOccupantIndex(
       for (let y = 0; y < footprint.height; y += 1) {
         const cellX = object.gridX + x;
         const cellY = object.gridY + y;
-        if (
-          cellX >= 0 &&
-          cellY >= 0 &&
-          cellX < GARDEN_COLUMNS &&
-          cellY < GARDEN_ROWS
-        ) {
-          result[cellY * GARDEN_COLUMNS + cellX] = object.id;
+        if (isBuildableGardenCell(cellX, cellY)) {
+          result[getGardenCellIndex(cellX, cellY)] = object.id;
         }
       }
     }
@@ -144,17 +149,12 @@ export function isPlacementValidFromCellIndex(
   occupants: readonly string[],
 ): boolean {
   "worklet";
-  if (
-    gridX < 0 ||
-    gridY < 0 ||
-    gridX + footprintWidth > GARDEN_COLUMNS ||
-    gridY + footprintHeight > GARDEN_ROWS
-  ) {
-    return false;
-  }
   for (let x = 0; x < footprintWidth; x += 1) {
     for (let y = 0; y < footprintHeight; y += 1) {
-      const occupant = occupants[(gridY + y) * GARDEN_COLUMNS + gridX + x];
+      const cellX = gridX + x;
+      const cellY = gridY + y;
+      if (!isBuildableGardenCell(cellX, cellY)) return false;
+      const occupant = occupants[getGardenCellIndex(cellX, cellY)];
       if (occupant && occupant !== activeObjectId) return false;
     }
   }

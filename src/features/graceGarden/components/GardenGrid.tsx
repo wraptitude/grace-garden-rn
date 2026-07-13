@@ -1,11 +1,14 @@
 import React, { useMemo } from "react";
 import { Group, Path } from "@shopify/react-native-skia";
 import {
-  GARDEN_COLUMNS,
-  GARDEN_ROWS,
+  GARDEN_MAX_GRID_X,
+  GARDEN_MAX_GRID_Y,
+  GARDEN_MIN_GRID_X,
+  GARDEN_MIN_GRID_Y,
   TILE_HEIGHT,
   TILE_WIDTH,
   isoToWorld,
+  isBuildableGardenCell,
 } from "../engine/geometry";
 
 interface TileShape {
@@ -24,8 +27,9 @@ interface GardenGridProps {
 export function GardenGrid({ opacity = 0 }: GardenGridProps) {
   const tiles = useMemo<TileShape[]>(() => {
     const result: TileShape[] = [];
-    for (let y = 0; y < GARDEN_ROWS; y += 1) {
-      for (let x = 0; x < GARDEN_COLUMNS; x += 1) {
+    for (let y = GARDEN_MIN_GRID_Y; y < GARDEN_MAX_GRID_Y; y += 1) {
+      for (let x = GARDEN_MIN_GRID_X; x < GARDEN_MAX_GRID_X; x += 1) {
+        if (!isBuildableGardenCell(x, y)) continue;
         const center = isoToWorld(x, y);
         const halfWidth = TILE_WIDTH / 2;
         const halfHeight = TILE_HEIGHT / 2;

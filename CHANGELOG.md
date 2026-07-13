@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.1 — Full-Surface Placement Grid
+
+- Replaced the central diamond with a 668-cell island-shaped placement mask, extending real buildable grid coverage across the previously empty left and right grass wedges.
+- Preserved existing save coordinates while extending collision, drag preview, rotation, repair, and placement logic into the new negative-coordinate wing cells.
+
 ## v2.0 — Placement Game Quality Reset
 
 - Rebuilt the garden as a fullscreen scene with floating HUD, collapsible placement drawer, and compact selection controls.

@@ -6,16 +6,25 @@ import type {
   GridPoint,
 } from "../state/types";
 
-export const TILE_WIDTH = 104;
-export const TILE_HEIGHT = 52;
+export const TILE_WIDTH = 94;
+export const TILE_HEIGHT = 47;
 
 /**
- * v2.0 keeps a 16 × 16 buildable garden while rebuilding the visual camera and scene composition.
- * Existing saves keep the same gridX/gridY coordinates and remain valid.
+ * The island top is an ellipse, not an isometric diamond. A larger backing
+ * range plus a surface mask adds real buildable cells to the left/right wings
+ * without moving any coordinates from existing saves.
  */
-export const GARDEN_COLUMNS = 16;
-export const GARDEN_ROWS = 16;
-export const GARDEN_CELL_CAPACITY = GARDEN_COLUMNS * GARDEN_ROWS;
+export const GARDEN_MIN_GRID_X = -8;
+export const GARDEN_MIN_GRID_Y = -8;
+export const GARDEN_COLUMNS = 31;
+export const GARDEN_ROWS = 31;
+export const GARDEN_MAX_GRID_X = GARDEN_MIN_GRID_X + GARDEN_COLUMNS;
+export const GARDEN_MAX_GRID_Y = GARDEN_MIN_GRID_Y + GARDEN_ROWS;
+
+export const GARDEN_SURFACE_CENTER_WORLD_X = 0;
+export const GARDEN_SURFACE_CENTER_WORLD_Y = 350;
+export const GARDEN_SURFACE_RADIUS_WORLD_X = 900;
+export const GARDEN_SURFACE_RADIUS_WORLD_Y = 520;
 
 /**
  * The larger island needs a lower fit scale on narrow phones so the complete
@@ -48,6 +57,48 @@ export function isoToWorld(gridX: number, gridY: number): WorldPoint {
     y: (gridX + gridY) * (TILE_HEIGHT / 2),
   };
 }
+
+/** True when a grid cell belongs to the usable grass surface. */
+export function isBuildableGardenCell(gridX: number, gridY: number): boolean {
+  "worklet";
+  if (
+    gridX < GARDEN_MIN_GRID_X ||
+    gridY < GARDEN_MIN_GRID_Y ||
+    gridX >= GARDEN_MAX_GRID_X ||
+    gridY >= GARDEN_MAX_GRID_Y
+  ) {
+    return false;
+  }
+
+  const world = isoToWorld(gridX, gridY);
+  const normalizedX =
+    (world.x - GARDEN_SURFACE_CENTER_WORLD_X) /
+    GARDEN_SURFACE_RADIUS_WORLD_X;
+  const normalizedY =
+    (world.y - GARDEN_SURFACE_CENTER_WORLD_Y) /
+    GARDEN_SURFACE_RADIUS_WORLD_Y;
+  return normalizedX * normalizedX + normalizedY * normalizedY <= 1;
+}
+
+/** Worklet-safe index into the rectangular backing array. */
+export function getGardenCellIndex(gridX: number, gridY: number): number {
+  "worklet";
+  return (
+    (gridY - GARDEN_MIN_GRID_Y) * GARDEN_COLUMNS +
+    gridX -
+    GARDEN_MIN_GRID_X
+  );
+}
+
+export const GARDEN_CELL_CAPACITY = (() => {
+  let capacity = 0;
+  for (let y = GARDEN_MIN_GRID_Y; y < GARDEN_MAX_GRID_Y; y += 1) {
+    for (let x = GARDEN_MIN_GRID_X; x < GARDEN_MAX_GRID_X; x += 1) {
+      if (isBuildableGardenCell(x, y)) capacity += 1;
+    }
+  }
+  return capacity;
+})();
 
 export function worldToIso(worldX: number, worldY: number): GridPoint {
   "worklet";
@@ -84,14 +135,14 @@ export function snapGrid(value: number): number {
   return Math.round(value);
 }
 
-/** Returns the full diamond bounds of the current buildable board. */
+/** Returns the bounds of the island-shaped buildable cell mask. */
 export function getGardenBoardWorldBounds(): WorldRect {
-  const centers = [
-    isoToWorld(0, 0),
-    isoToWorld(GARDEN_COLUMNS - 1, 0),
-    isoToWorld(0, GARDEN_ROWS - 1),
-    isoToWorld(GARDEN_COLUMNS - 1, GARDEN_ROWS - 1),
-  ];
+  const centers: WorldPoint[] = [];
+  for (let y = GARDEN_MIN_GRID_Y; y < GARDEN_MAX_GRID_Y; y += 1) {
+    for (let x = GARDEN_MIN_GRID_X; x < GARDEN_MAX_GRID_X; x += 1) {
+      if (isBuildableGardenCell(x, y)) centers.push(isoToWorld(x, y));
+    }
+  }
   const minCenterX = Math.min(...centers.map((point) => point.x));
   const maxCenterX = Math.max(...centers.map((point) => point.x));
   const minCenterY = Math.min(...centers.map((point) => point.y));

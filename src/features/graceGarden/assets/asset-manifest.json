@@ -214,12 +214,23 @@
     "flower_hammock_grounded": "reuses garden_hammock PNG for old saves"
   },
   "layout": {
-    "columns": 16,
-    "rows": 16,
-    "cellCapacity": 256,
+    "columns": 31,
+    "rows": 31,
+    "minGridCoordinate": [
+      -8,
+      -8
+    ],
+    "cellCapacity": 668,
+    "buildableShape": "island-ellipse",
+    "surfaceEllipseWorld": [
+      0,
+      350,
+      900,
+      520
+    ],
     "tileWorldSize": [
-      104,
-      52
+      94,
+      47
     ],
     "islandWorldRect": [
       -950,
