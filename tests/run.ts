@@ -36,10 +36,13 @@ import {
   worldToIso,
 } from "../src/features/graceGarden/engine/geometry";
 import { getPlantGrowthStatus } from "../src/features/graceGarden/engine/growth";
+import { repairOverlappingPlacements } from "../src/features/graceGarden/engine/placementRepair";
 import {
   canRotateItem,
+  findRotationPlacement,
   getNextRotation,
   getRotationPlacementCandidates,
+  getSpriteMirrorScaleX,
 } from "../src/features/graceGarden/engine/rotation";
 import { GARDEN_CATALOG } from "../src/features/graceGarden/state/catalog";
 import { migrateGardenSave } from "../src/features/graceGarden/state/migrations";
@@ -188,6 +191,77 @@ test("drag preview uses the same collision rules as committed placement", () => 
   );
 });
 
+test("old saves repair real overlaps while preserving fixed landmarks", () => {
+  const overlapping = [
+    {
+      id: "movable-bench",
+      catalogId: "flower_bench",
+      kind: "decoration" as const,
+      gridX: 6,
+      gridY: 6,
+      rotation: 1 as const,
+      createdAt: 1,
+      updatedAt: 1,
+    },
+    {
+      id: "fixed-fountain",
+      catalogId: "grace_fountain",
+      kind: "fountain" as const,
+      gridX: 6,
+      gridY: 6,
+      rotation: 0 as const,
+      locked: true,
+      createdAt: 2,
+      updatedAt: 2,
+    },
+    {
+      id: "valid-lamp",
+      catalogId: "grace_lamp",
+      kind: "lamp" as const,
+      gridX: 1,
+      gridY: 1,
+      rotation: 0 as const,
+      createdAt: 3,
+      updatedAt: 3,
+    },
+    {
+      id: "overflow-well",
+      catalogId: "flower_well",
+      kind: "decoration" as const,
+      gridX: 15,
+      gridY: 15,
+      rotation: 0 as const,
+      createdAt: 4,
+      updatedAt: 4,
+    },
+  ];
+  const repaired = repairOverlappingPlacements(overlapping, 999);
+  const fountain = repaired.objects.find((object) => object.id === "fixed-fountain");
+  const bench = repaired.objects.find((object) => object.id === "movable-bench");
+  const lamp = repaired.objects.find((object) => object.id === "valid-lamp");
+
+  assert.deepEqual(repaired.objects.map((object) => object.id), overlapping.map((object) => object.id));
+  assert.deepEqual([fountain?.gridX, fountain?.gridY], [6, 6]);
+  assert.deepEqual([lamp?.gridX, lamp?.gridY], [1, 1]);
+  assert.ok(repaired.movedObjectIds.includes("movable-bench"));
+  assert.ok(repaired.movedObjectIds.includes("overflow-well"));
+  assert.equal(bench?.rotation, 1);
+
+  for (const object of repaired.objects) {
+    const placement = canPlaceObject(
+      repaired.objects,
+      {
+        catalogId: object.catalogId,
+        gridX: object.gridX,
+        gridY: object.gridY,
+        rotation: object.rotation,
+      },
+      object.id,
+    );
+    assert.equal(placement.ok, true, `${object.id} still overlaps`);
+  }
+});
+
 test("watering advances effective plant growth", () => {
   const item = GARDEN_CATALOG.flower_pink;
   const object = {
@@ -232,6 +306,35 @@ test("bench rotation chooses a nearby reversible grid origin", () => {
     1,
   );
   assert.deepEqual(forward[0], { x: 5, y: 6 });
+});
+
+test("edge objects rotate into the nearest legal fallback position", () => {
+  const fence = {
+    id: "edge-fence",
+    catalogId: "white_flower_fence",
+    kind: "decoration" as const,
+    gridX: 12,
+    gridY: 15,
+    rotation: 0 as const,
+    createdAt: 1,
+    updatedAt: 1,
+  };
+  const point = findRotationPlacement(
+    [fence],
+    fence,
+    GARDEN_CATALOG.white_flower_fence,
+    1,
+  );
+  assert.ok(point !== null);
+  assert.equal(
+    canPlaceObject([], {
+      catalogId: fence.catalogId,
+      gridX: point?.x ?? -1,
+      gridY: point?.y ?? -1,
+      rotation: 1,
+    }).ok,
+    true,
+  );
 });
 
 test("invalid save safely migrates to seed data", () => {
@@ -279,11 +382,23 @@ test("all commercial sprites use calibrated ground anchors", () => {
   assert.equal(GARDEN_SPRITE_METRICS.garden_bench.anchorY, 0.945);
 });
 
-test("single-direction PNG assets do not expose fake screen rotation", () => {
-  assert.equal(canRotateItem(GARDEN_CATALOG.flower_bench), false);
-  assert.equal(canRotateItem(GARDEN_CATALOG.flower_hammock), false);
-  assert.equal(canRotateItem(GARDEN_CATALOG.white_flower_fence), false);
-  assert.equal(canRotateItem(GARDEN_CATALOG.flower_arch), false);
+test("directional PNG assets expose two mirrored isometric facings", () => {
+  for (const item of [
+    GARDEN_CATALOG.flower_bench,
+    GARDEN_CATALOG.flower_well,
+    GARDEN_CATALOG.flower_arch,
+    GARDEN_CATALOG.flower_hammock,
+    GARDEN_CATALOG.white_flower_fence,
+    GARDEN_CATALOG.garden_cafe_set,
+  ]) {
+    assert.equal(canRotateItem(item), true);
+    assert.equal(getNextRotation(item, 0), 1);
+    assert.equal(getNextRotation(item, 1), 0);
+  }
+  assert.equal(getSpriteMirrorScaleX(0), 1);
+  assert.equal(getSpriteMirrorScaleX(1), -1);
+  assert.equal(getSpriteMirrorScaleX(2), 1);
+  assert.equal(getSpriteMirrorScaleX(3), -1);
 });
 
 console.log("\nAll Grace Garden v2.0 quality-reset tests passed.");

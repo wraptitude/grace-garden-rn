@@ -69,6 +69,11 @@ export interface GardenCatalogItem {
 
 export interface GardenSaveV1 {
   schemaVersion: typeof GARDEN_SCHEMA_VERSION;
+  /**
+   * Internal, backwards-compatible layout polish revision. This deliberately
+   * does not change the MMKV schema version or any object identity fields.
+   */
+  placementLayoutVersion?: number;
   gardenId: string;
   userId: string;
   revision: number;

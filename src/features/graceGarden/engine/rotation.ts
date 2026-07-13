@@ -9,6 +9,7 @@ import {
   getRotatedFootprint,
   isoToWorld,
 } from "./geometry";
+import { canPlaceObject, findFirstAvailablePlacement } from "./collision";
 
 export function canRotateItem(item: GardenCatalogItem): boolean {
   return item.rotationMode !== "none";
@@ -39,6 +40,11 @@ export function getNextRotation(
     return ((normalized + 1) % 2) as GardenRotation;
   }
   return ((normalized + 1) % 4) as GardenRotation;
+}
+
+/** A horizontal mirror represents the second isometric facing of one PNG. */
+export function getSpriteMirrorScaleX(rotation: GardenRotation): 1 | -1 {
+  return rotation % 2 === 0 ? 1 : -1;
 }
 
 /**
@@ -102,4 +108,39 @@ export function getRotationPlacementCandidates(
       }
       return a.y - b.y || a.x - b.x;
     });
+}
+
+/**
+ * Keeps the visual centre when possible, then falls back to the nearest legal
+ * origin. This prevents a rotatable object near an edge or a busy area from
+ * getting stuck merely because the four centre-preserving cells are blocked.
+ */
+export function findRotationPlacement(
+  objects: readonly GardenObject[],
+  object: GardenObject,
+  item: GardenCatalogItem,
+  nextRotation: GardenRotation,
+): GridPoint | null {
+  const otherObjects = objects.filter((value) => value.id !== object.id);
+  const centred = getRotationPlacementCandidates(
+    object,
+    item,
+    nextRotation,
+  ).find((point) =>
+    canPlaceObject(otherObjects, {
+      catalogId: object.catalogId,
+      gridX: point.x,
+      gridY: point.y,
+      rotation: nextRotation,
+    }).ok,
+  );
+  return (
+    centred ??
+    findFirstAvailablePlacement(
+      otherObjects,
+      object.catalogId,
+      nextRotation,
+      { x: object.gridX, y: object.gridY },
+    )
+  );
 }

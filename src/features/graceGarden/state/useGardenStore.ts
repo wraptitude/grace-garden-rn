@@ -6,9 +6,13 @@ import {
 import { getPlantGrowthStatus } from "../engine/growth";
 import { createGardenObjectId } from "../engine/ids";
 import {
+  CURRENT_PLACEMENT_LAYOUT_VERSION,
+  repairOverlappingPlacements,
+} from "../engine/placementRepair";
+import {
   canRotateItem,
+  findRotationPlacement,
   getNextRotation,
-  getRotationPlacementCandidates,
 } from "../engine/rotation";
 import { mmkvGardenStorage } from "../storage/mmkvGardenStorage";
 import type { GardenStorage } from "../storage/types";
@@ -73,6 +77,29 @@ function updateAndPersist(
   set({ garden, lastError: storageError });
 }
 
+function repairGardenPlacements(
+  garden: GardenSaveV1,
+  now = Date.now(),
+): { garden: GardenSaveV1; repaired: boolean } {
+  if (
+    (garden.placementLayoutVersion ?? 0) >=
+    CURRENT_PLACEMENT_LAYOUT_VERSION
+  ) {
+    return { garden, repaired: false };
+  }
+  const repair = repairOverlappingPlacements(garden.objects, now);
+  return {
+    garden: {
+      ...garden,
+      placementLayoutVersion: CURRENT_PLACEMENT_LAYOUT_VERSION,
+      objects: repair.objects,
+      revision: garden.revision + 1,
+      updatedAt: now,
+    },
+    repaired: true,
+  };
+}
+
 export const useGardenStore = create<GardenState>((set, get) => ({
   userId: "guest",
   garden: createSeedGarden("guest", 0),
@@ -83,8 +110,10 @@ export const useGardenStore = create<GardenState>((set, get) => ({
   initialize(userId) {
     try {
       const raw = activeStorage.load(userId);
-      const garden = migrateGardenSave(raw, userId);
-      if (raw === null) {
+      const normalized = migrateGardenSave(raw, userId);
+      const repair = repairGardenPlacements(normalized);
+      const garden = repair.garden;
+      if (raw === null || repair.repaired) {
         activeStorage.save(userId, garden);
       }
       set({
@@ -226,18 +255,11 @@ export const useGardenStore = create<GardenState>((set, get) => ({
     }
 
     const rotation = getNextRotation(item, object.rotation);
-    const origin = getRotationPlacementCandidates(object, item, rotation).find(
-      (point) =>
-        canPlaceObject(
-          state.garden.objects,
-          {
-            catalogId: object.catalogId,
-            gridX: point.x,
-            gridY: point.y,
-            rotation,
-          },
-          object.id,
-        ).ok,
+    const origin = findRotationPlacement(
+      state.garden.objects,
+      object,
+      item,
+      rotation,
     );
     if (!origin) {
       set({ lastError: "轉向後會撞到其他物件或超出花園" });
@@ -380,7 +402,8 @@ export const useGardenStore = create<GardenState>((set, get) => ({
   applyRemoteGarden(garden) {
     const state = get();
     const normalized = migrateGardenSave(garden, state.userId);
-    updateAndPersist(set, state.userId, normalized);
+    const repaired = repairGardenPlacements(normalized).garden;
+    updateAndPersist(set, state.userId, repaired);
     set({ selectedObjectId: null });
   },
 

@@ -18,7 +18,7 @@
         3,
         1
       ],
-      "rotationMode": "none",
+      "rotationMode": "two-way",
       "worldSize": [
         270,
         276
@@ -64,7 +64,7 @@
         3,
         2
       ],
-      "rotationMode": "none",
+      "rotationMode": "two-way",
       "worldSize": [
         292,
         395
@@ -87,7 +87,7 @@
         3,
         2
       ],
-      "rotationMode": "none",
+      "rotationMode": "two-way",
       "worldSize": [
         300,
         396
@@ -110,7 +110,7 @@
         4,
         2
       ],
-      "rotationMode": "none",
+      "rotationMode": "two-way",
       "worldSize": [
         410,
         339
@@ -133,7 +133,7 @@
         4,
         1
       ],
-      "rotationMode": "none",
+      "rotationMode": "two-way",
       "worldSize": [
         330,
         265
@@ -156,7 +156,7 @@
         3,
         3
       ],
-      "rotationMode": "none",
+      "rotationMode": "two-way",
       "worldSize": [
         325,
         391

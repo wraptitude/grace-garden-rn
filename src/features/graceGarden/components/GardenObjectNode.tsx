@@ -383,6 +383,7 @@ export function GardenObjectNode({
         {item.spriteId ? (
           <GardenSpriteNode
             spriteId={item.spriteId as GardenSpriteId}
+            rotation={object.rotation}
             fallback={fallback}
           />
         ) : (

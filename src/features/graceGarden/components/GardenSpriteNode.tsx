@@ -18,9 +18,12 @@ import {
   GARDEN_SPRITE_ASSETS,
   type GardenSpriteId,
 } from "../assets/assetRegistry";
+import { getSpriteMirrorScaleX } from "../engine/rotation";
+import type { GardenRotation } from "../state/types";
 
 interface GardenSpriteNodeProps {
   spriteId: GardenSpriteId;
+  rotation: GardenRotation;
   fallback: ReactNode;
 }
 
@@ -69,6 +72,7 @@ function SoftContactShadow({
 
 export function GardenSpriteNode({
   spriteId,
+  rotation,
   fallback,
 }: GardenSpriteNodeProps) {
   const asset = GARDEN_SPRITE_ASSETS[spriteId];
@@ -93,6 +97,7 @@ export function GardenSpriteNode({
 
   const imageX = -asset.worldWidth * asset.anchorX;
   const imageY = -asset.worldHeight * asset.anchorY;
+  const mirrorScaleX = getSpriteMirrorScaleX(rotation);
 
   return (
     <Group>
@@ -104,37 +109,39 @@ export function GardenSpriteNode({
         opacity={asset.shadowOpacity}
       />
 
-      {asset.effect === "lamp-glow" ? (
-        <Group opacity={glowOpacity}>
-          <Circle
-            cx={0}
-            cy={imageY + asset.worldHeight * 0.19}
-            r={asset.worldWidth * 0.72}
-            color="#ffe59a"
-          />
-        </Group>
-      ) : null}
+      <Group transform={[{ scaleX: mirrorScaleX }]}>
+        {asset.effect === "lamp-glow" ? (
+          <Group opacity={glowOpacity}>
+            <Circle
+              cx={0}
+              cy={imageY + asset.worldHeight * 0.19}
+              r={asset.worldWidth * 0.72}
+              color="#ffe59a"
+            />
+          </Group>
+        ) : null}
 
-      {asset.effect === "water-glow" ? (
-        <Group opacity={glowOpacity}>
-          <Oval
-            x={-asset.worldWidth * 0.37}
-            y={-asset.worldHeight * 0.16}
-            width={asset.worldWidth * 0.74}
-            height={asset.worldHeight * 0.14}
-            color="#a9eff4"
-          />
-        </Group>
-      ) : null}
+        {asset.effect === "water-glow" ? (
+          <Group opacity={glowOpacity}>
+            <Oval
+              x={-asset.worldWidth * 0.37}
+              y={-asset.worldHeight * 0.16}
+              width={asset.worldWidth * 0.74}
+              height={asset.worldHeight * 0.14}
+              color="#a9eff4"
+            />
+          </Group>
+        ) : null}
 
-      <SkiaImage
-        image={image}
-        x={imageX}
-        y={imageY}
-        width={asset.worldWidth}
-        height={asset.worldHeight}
-        fit="contain"
-      />
+        <SkiaImage
+          image={image}
+          x={imageX}
+          y={imageY}
+          width={asset.worldWidth}
+          height={asset.worldHeight}
+          fit="contain"
+        />
+      </Group>
     </Group>
   );
 }

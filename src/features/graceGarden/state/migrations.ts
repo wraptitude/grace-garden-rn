@@ -132,6 +132,10 @@ export function migrateGardenSave(
 
   return {
     schemaVersion: GARDEN_SCHEMA_VERSION,
+    placementLayoutVersion: asNonNegativeInteger(
+      raw.placementLayoutVersion,
+      0,
+    ),
     gardenId:
       typeof raw.gardenId === "string" && raw.gardenId.length > 0
         ? raw.gardenId

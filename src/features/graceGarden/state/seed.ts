@@ -1,5 +1,6 @@
 import type { GardenObject, GardenSaveV1 } from "./types";
 import { GARDEN_SCHEMA_VERSION } from "./types";
+import { CURRENT_PLACEMENT_LAYOUT_VERSION } from "../engine/placementRepair";
 
 /**
  * v2.0 starts with a composed benchmark scene instead of dropping every new
@@ -34,6 +35,7 @@ export function createSeedGarden(
 ): GardenSaveV1 {
   return {
     schemaVersion: GARDEN_SCHEMA_VERSION,
+    placementLayoutVersion: CURRENT_PLACEMENT_LAYOUT_VERSION,
     gardenId: `garden-${userId}`,
     userId,
     revision: 1,
