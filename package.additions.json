@@ -1,0 +1,19 @@
+{
+  "description": "Dependencies used by the Grace Garden starter. Merge these into the host app instead of replacing its package.json.",
+  "verifiedOn": "2026-07-11",
+  "verifiedRuntime": {
+    "react-native": "0.86.0",
+    "react": "19.2.7",
+    "architecture": "New Architecture / Fabric"
+  },
+  "verifiedDependencies": {
+    "@shopify/react-native-skia": "2.6.9",
+    "react-native-gesture-handler": "3.0.2",
+    "react-native-reanimated": "4.5.1",
+    "react-native-worklets": "0.10.2",
+    "zustand": "5.0.14",
+    "react-native-mmkv": "4.3.2",
+    "react-native-nitro-modules": "0.36.1"
+  },
+  "note": "Do not blindly install these exact versions into a different React Native minor. Check docs/COMPATIBILITY.md first."
+}

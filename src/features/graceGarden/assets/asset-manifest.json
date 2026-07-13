@@ -1,0 +1,232 @@
+{
+  "pack": "Grace Garden v2.0 — Quality Placement Reset",
+  "scene": {
+    "sky_day": "backgrounds/sky/sky_day_gradient.png",
+    "cloud_back_large": "effects/clouds/cloud_back_large.png",
+    "cloud_mid_medium": "effects/clouds/cloud_mid_medium.png",
+    "cloud_front_wide": "effects/clouds/cloud_front_wide.png",
+    "floating_island": "terrain/islands/floating_island_base.png",
+    "floating_island_front": "terrain/islands/floating_island_front.png",
+    "floating_island_shadow": "terrain/islands/floating_island_shadow.png"
+  },
+  "placeables": [
+    {
+      "catalogId": "flower_bench",
+      "spriteId": "garden_bench",
+      "file": "decorations/seating/garden_bench.png",
+      "footprint": [
+        3,
+        1
+      ],
+      "rotationMode": "none",
+      "worldSize": [
+        270,
+        276
+      ],
+      "groundAnchor": [
+        0.5,
+        0.945
+      ],
+      "hitbox": [
+        250,
+        260
+      ],
+      "focusZoom": 2.15
+    },
+    {
+      "catalogId": "grace_lamp",
+      "spriteId": "garden_lamp",
+      "file": "decorations/lighting/garden_lamp.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "rotationMode": "none",
+      "worldSize": [
+        104,
+        364
+      ],
+      "groundAnchor": [
+        0.5,
+        0.968
+      ],
+      "hitbox": [
+        92,
+        344
+      ],
+      "focusZoom": 2.25
+    },
+    {
+      "catalogId": "flower_well",
+      "spriteId": "garden_well",
+      "file": "decorations/water/garden_well.png",
+      "footprint": [
+        3,
+        2
+      ],
+      "rotationMode": "none",
+      "worldSize": [
+        292,
+        395
+      ],
+      "groundAnchor": [
+        0.5,
+        0.958
+      ],
+      "hitbox": [
+        270,
+        378
+      ],
+      "focusZoom": 2.05
+    },
+    {
+      "catalogId": "flower_arch",
+      "spriteId": "garden_arch",
+      "file": "decorations/structures/garden_arch.png",
+      "footprint": [
+        3,
+        2
+      ],
+      "rotationMode": "none",
+      "worldSize": [
+        300,
+        396
+      ],
+      "groundAnchor": [
+        0.5,
+        0.972
+      ],
+      "hitbox": [
+        280,
+        382
+      ],
+      "focusZoom": 2.05
+    },
+    {
+      "catalogId": "flower_hammock",
+      "spriteId": "garden_hammock",
+      "file": "decorations/seating/garden_hammock.png",
+      "footprint": [
+        4,
+        2
+      ],
+      "rotationMode": "none",
+      "worldSize": [
+        410,
+        339
+      ],
+      "groundAnchor": [
+        0.5,
+        0.942
+      ],
+      "hitbox": [
+        390,
+        325
+      ],
+      "focusZoom": 1.95
+    },
+    {
+      "catalogId": "white_flower_fence",
+      "spriteId": "garden_fence",
+      "file": "decorations/boundaries/garden_fence.png",
+      "footprint": [
+        4,
+        1
+      ],
+      "rotationMode": "none",
+      "worldSize": [
+        330,
+        265
+      ],
+      "groundAnchor": [
+        0.5,
+        0.918
+      ],
+      "hitbox": [
+        310,
+        244
+      ],
+      "focusZoom": 2.0
+    },
+    {
+      "catalogId": "garden_cafe_set",
+      "spriteId": "garden_patio_set",
+      "file": "decorations/dining/garden_patio_set.png",
+      "footprint": [
+        3,
+        3
+      ],
+      "rotationMode": "none",
+      "worldSize": [
+        325,
+        391
+      ],
+      "groundAnchor": [
+        0.5,
+        0.925
+      ],
+      "hitbox": [
+        305,
+        365
+      ],
+      "focusZoom": 2.0
+    },
+    {
+      "catalogId": "grace_fountain",
+      "spriteId": "grace_fountain",
+      "file": "decorations/water/grace_fountain.png",
+      "footprint": [
+        4,
+        4
+      ],
+      "rotationMode": "none",
+      "worldSize": [
+        420,
+        427
+      ],
+      "groundAnchor": [
+        0.5,
+        0.95
+      ],
+      "hitbox": [
+        400,
+        405
+      ],
+      "focusZoom": 1.9,
+      "fixedLandmark": true
+    }
+  ],
+  "visualSystem": {
+    "camera": "fixed overview + bounded pinch focus",
+    "overviewGrid": "hidden",
+    "editGrid": "stroke only",
+    "grounding": "per-asset ground anchor + layered soft contact shadow",
+    "occlusion": "front island lip rendered after objects",
+    "cloudMotionSeconds": {
+      "back": 100,
+      "mid": 70,
+      "front": 45
+    }
+  },
+  "legacyCompatibility": {
+    "olive_tree": "keeps Skia fallback but is hidden from the v2 toolbar until matching art exists",
+    "flower_pink": "growth logic remains, but placeholder art is hidden from the v2 toolbar",
+    "flower_hammock_grounded": "reuses garden_hammock PNG for old saves"
+  },
+  "layout": {
+    "columns": 16,
+    "rows": 16,
+    "cellCapacity": 256,
+    "tileWorldSize": [
+      104,
+      52
+    ],
+    "islandWorldRect": [
+      -950,
+      -193,
+      1900,
+      1571
+    ],
+    "cameraFitMode": "fixed-overview-bounded-focus"
+  }
+}

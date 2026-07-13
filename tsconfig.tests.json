@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "outDir": ".test-build",
+    "rootDir": ".",
+    "typeRoots": ["./node_modules/@types"]
+  },
+  "include": [
+    "tests/run.ts",
+    "src/features/graceGarden/assets/assetMetrics.ts",
+    "src/features/graceGarden/assets/sceneMetrics.ts",
+    "src/features/graceGarden/engine/*.ts",
+    "src/features/graceGarden/state/catalog.ts",
+    "src/features/graceGarden/state/migrations.ts",
+    "src/features/graceGarden/state/seed.ts",
+    "src/features/graceGarden/state/types.ts"
+  ]
+}
